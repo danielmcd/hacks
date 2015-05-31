@@ -17,7 +17,7 @@ class Trainer:
         self.test_buy_raw_data = []
         self.test_sell_raw_data = []
 
-    def get_training_data(self):
+    def get_training_moments(self):
         return self._make_training_data()
 
     def _make_training_data(self):

@@ -1,9 +1,8 @@
 #!/usr/bin/python
 import calendar
-import numpy
-import talib
+from candleencoder import CandlestickEncoder
 from trainer import Trainer
-from utils.utils import DotDictify, get_first_average, get_next_average
+from utils.utils import get_first_average, get_next_average
 
 __author__ = 'sajarora'
 
@@ -32,12 +31,13 @@ class StockRecord(object):
         self.week_of_month = get_week_of_month(date)
         self.year_of_decade = date.year % 10
         self.month_of_year = date.month
-        self.quarter_of_year = month.quarter
+        self.quart_of_year = month.quarter
         self.half_of_year = month.half
 
         #semantics
-        self.symbol = stock.get_symbol()
+        self.symbol = 1 # symbol has to be encoded
         self.stoch_rsi = datapoint.get_stoch_rsi()
+        self.candlestick = datapoint.get_candlestick()
 
 
 class Stock:
@@ -57,9 +57,9 @@ class Stock:
     def get_datapoints(self):
         return self.datapoints
 
-    def get_training_data(self, stoch_period=14):
+    def get_training_datasets(self, stoch_period=14):
         trainer = Trainer(self)
-        buy_moments, sell_moments = trainer.get_training_data()
+        buy_moments, sell_moments = trainer.get_training_moments()
 
         trainable_buy_data = self._analyze_data(buy_moments, stoch_period)
         trainable_sell_data = self._analyze_data(buy_moments, stoch_period)
@@ -77,8 +77,9 @@ class Stock:
             for i in range(stoch_period + 1, len(moment)):
                 if len(last_rsi) > stoch_period - 1:
                     last_rsi.pop(0)
+                # get the next average
                 datapoint = get_next_average(moment[i], moment[i - 1], avg_gain, avg_loss, stoch_period)
-                last_rsi.append(datapoint.get_rsi())
+                last_rsi.append(datapoint.get_rsi()) # add to last rsi
 
                 lowest_low_rsi = 100
                 highest_high_rsi = 0
@@ -89,6 +90,13 @@ class Stock:
                     datapoint.stoch_rsi = (datapoint.rsi - lowest_low_rsi)/(highest_high_rsi - lowest_low_rsi)
                 else:
                     continue
+
+                # encode candlestick data
+                candlestick = CandlestickEncoder(moment[i], moment[i - 1])
+                datapoint.candlestick = candlestick.encode()
+                #print datapoint.candlestick
+
                 trainable_data.append(StockRecord(self, datapoint))
             trainable_moments.append(trainable_data)
+
         return trainable_moments

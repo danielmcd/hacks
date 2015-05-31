@@ -12,6 +12,7 @@ class DataPoint:
         self.rs = 0
         self.rsi = 0
         self.stoch_rsi = 0
+        self.candlestick = []
 
     def get_date(self):
         return self.data.date
@@ -48,6 +49,9 @@ class DataPoint:
 
     def get_rsi(self):
         return self.rsi
+
+    def get_candlestick(self):
+        return self.candlestick
 
 
 
