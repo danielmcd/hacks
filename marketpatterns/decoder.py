@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import os
 import numpy
@@ -5,6 +6,7 @@ import matplotlib.pyplot as plt
 from nupic.algorithms.anomaly import computeRawAnomalyScore
 from encoder.encoder import Encoder
 from encoder.trainer_file import TrainerFile
+
 from encoder.utils.utils import print_err
 
 class Decoder(object):

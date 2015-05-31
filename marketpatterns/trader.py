@@ -1,6 +1,9 @@
 # Implement a trading strategy based on the trained buy and sell models
 
+from __future__ import print_function
+import sys
 import datetime
+from encoder.utils.utils import print_err
 
 
 class Trade(object):
@@ -12,7 +15,7 @@ class Trade(object):
 
     def is_expired(self, day):
         ''' @return true if day is outside the trade_window of the trade '''
-    	return day > self.day + self.trade_window:
+    	return day > self.day + self.trade_window
 
     def get_earnings(self):
     	return self.earnings
@@ -130,13 +133,29 @@ def print_usage_and_exit():
     print_err("\n" + sys.argv[0] + " <quote_file_path> <buy_model_name> <sell_model_name> <year> <pattern_window> <trade_window> <buy_threshold> <sell_threshold>")
     print_err("\nquote_file_path\tpath to file containing quote data")
     print_err("buy_model_name\tname of buy model without extension")
+    print_err("sell_model_name\tname of sell model without extension")
+    print_err("year\tyear of data to use for trade testing")
+    print_err("pattern_window\ttime window for pattern recognition (should match training protocol)")
+    print_err("trade_window\ttime window for trade execution (should match training protocol)")
+    print_err("buy_threshold\tthreshold [0, 1] below which the buy model anomaly score predicts a buy pattern")
+    print_err("buy_threshold\tthreshold [0, 1] below which the sell model anomaly score predicts a sell pattern")
     exit(1)
 
 
 def check_command_line_args():
     if len(sys.argv) < 9:
     	print_usage_and_exit()
+    # TODO add checks for other parameters
+    return sys.argv[1:]
 
 if __name__ == "__main__":
     # Args:  quote_file_path, buy_model_name, sell_model_name, year, pattern_window, trade_window, buy_threshold, sell_threshold
     quote_file_path, buy_model_name, sell_model_name, year, pattern_window, trade_window, buy_threshold, sell_threshold = check_command_line_args()
+
+    buy_model = Encoder(buy_model_name, enableLearn=False)
+    sell_model = Encoder(sell_model_name, enableLearn=False)
+
+    start_date = datetime.date(int(year), 1, 1)
+    end_date = datetime.date(int(year), 12, 31)
+    Trader(start_date, end_date, trade_window, pattern_window, buy_model, buy_threshold, sell_model, sell_threshold, quotes)
+
