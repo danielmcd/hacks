@@ -26,6 +26,12 @@ class DataPoint:
     def get_volume(self):
         return self.data.volume
 
+    def set_stoch_rsi(self, value):
+        self.stoch_rsi = value
+
+    def get_stoch_rsi(self):
+        return self.stoch_rsi
+
 
 
 

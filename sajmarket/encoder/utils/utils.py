@@ -1,7 +1,10 @@
 #!/usr/bin/python
 import sys
+import talib
 
 __author__ = 'sajarora'
+
+DEFAULT_PERIOD = 14
 
 
 class DotDictify(dict):
@@ -33,4 +36,8 @@ class DotDictify(dict):
 
 def print_err(*args, **kwargs):
     print(args, sys.stderr, kwargs)
+
+
+def calculate_stoch_rsi(close, period=DEFAULT_PERIOD):
+    talib.STOCHRSI(close, period)
 
