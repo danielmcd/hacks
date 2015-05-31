@@ -6,7 +6,7 @@ from window import Window
 __author__ = 'sajarora'
 
 SPLIT_PROPORTION_TRAINING = 0.7
-PRECEDING_TIMEDELTA = datetime.timedelta(days=28)
+PRECEDING_TIMEDELTA = datetime.timedelta(days=40)
 
 
 class Trainer:
@@ -41,8 +41,8 @@ class Trainer:
         buy_data = []
         sell_data = []
         for moment in test_data:
-            buy_data.append(self._get_preceding_data(moment.buy_datapoint.get_date()))
-            sell_data.append(
+            buy_data.extend(self._get_preceding_data(moment.buy_datapoint.get_date()))
+            sell_data.extend(
                 self._get_preceding_data(moment.sell_datapoint.get_date()))
         self.test_buy_raw_data = buy_data
         self.test_sell_raw_data = sell_data

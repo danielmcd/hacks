@@ -7,6 +7,11 @@ __author__ = 'sajarora'
 class DataPoint:
     def __init__(self, data):
         self.data = DotDictify(data)
+        self.avg_gain = 0
+        self.avg_loss = 0
+        self.rs = 0
+        self.rsi = 0
+        self.stoch_rsi = 0
 
     def get_date(self):
         return self.data.date
@@ -31,6 +36,20 @@ class DataPoint:
 
     def get_stoch_rsi(self):
         return self.stoch_rsi
+
+    def get_avg_gain(self):
+        return self.avg_gain
+
+    def get_avg_loss(self):
+        return self.avg_loss
+
+    def get_rs(self):
+        return self.rs
+
+    def get_rsi(self):
+        return self.rsi
+
+
 
 
 

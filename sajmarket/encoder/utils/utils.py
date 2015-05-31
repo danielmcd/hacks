@@ -1,7 +1,5 @@
 #!/usr/bin/python
 import sys
-import talib
-
 __author__ = 'sajarora'
 
 DEFAULT_PERIOD = 14
@@ -38,6 +36,33 @@ def print_err(*args, **kwargs):
     print(args, sys.stderr, kwargs)
 
 
-def calculate_stoch_rsi(close, period=DEFAULT_PERIOD):
-    talib.STOCHRSI(close, period)
+def get_first_average(datapoints, stoch_period):
+    avg_gains = 0
+    avg_losses = 0
+    counter = 0
+    for index, datapoint in enumerate(datapoints):
+        if index == 0:
+            continue
+
+        if index <= stoch_period:
+            avg_gains += max(0, datapoint.get_close() - datapoints[index - 1].get_close())
+            avg_losses += (abs(min(0, datapoint.get_close() - datapoints[index - 1].get_close())))
+            counter += 1
+        else:
+            avg_gains /= counter
+            avg_losses /= counter
+            break
+    return avg_gains, avg_losses
+
+
+def get_next_average(datapoint, prev_datapoint, avg_gain, avg_loss, stoch_period):
+        avg_gain = ((avg_gain * stoch_period - 1) +
+                    max(0, datapoint.get_close() - prev_datapoint.get_close()))/stoch_period
+        avg_loss = ((avg_loss * stoch_period - 1) +
+                    abs(min(0, datapoint.get_close() - prev_datapoint.get_close())))/stoch_period
+        datapoint.avg_gain = avg_gain
+        datapoint.avg_loss = avg_loss
+        datapoint.rs = avg_gain/avg_loss
+        datapoint.rsi = 100 - (100/(1+datapoint.rs))
+        return datapoint
 

@@ -1,7 +1,9 @@
 #!/usr/bin/python
 import calendar
+import numpy
+import talib
 from trainer import Trainer
-from utils.utils import DotDictify, calculate_stoch_rsi
+from utils.utils import DotDictify, get_first_average, get_next_average
 
 __author__ = 'sajarora'
 
@@ -32,7 +34,11 @@ class StockRecord(object):
         self.month_of_year = date.month
         self.quarter_of_year = month.quarter
         self.half_of_year = month.half
+
+        #semantics
+        self.symbol = stock.get_symbol()
         self.stoch_rsi = datapoint.get_stoch_rsi()
+
 
 class Stock:
     def __init__(self, symbol, datapoints=[]):
@@ -51,17 +57,38 @@ class Stock:
     def get_datapoints(self):
         return self.datapoints
 
-    def get_training_data(self):
+    def get_training_data(self, stoch_period=14):
         trainer = Trainer(self)
         buy_moments, sell_moments = trainer.get_training_data()
 
-        for moment in buy_moments:
-            records = []
-            close_records = []
-            for datapoint in moment:
-                close_records.append(datapoint.get_close())
-                datapoint.set_stoch_rsi(calculate_stoch_rsi(close_records))
-                if datapoint.get_stoch_rsi() is None:
+        trainable_buy_data = self._analyze_data(buy_moments, stoch_period)
+        trainable_sell_data = self._analyze_data(buy_moments, stoch_period)
+        return trainable_buy_data, trainable_sell_data
+
+    def _analyze_data(self, moments, stoch_period):
+        trainable_moments = []
+        for moment in moments:
+            # calculate first average gain/loss
+            avg_gain, avg_loss = get_first_average(moment, stoch_period)
+
+            # iterate through all datapoints adding appropriate stoch values
+            trainable_data = []
+            last_rsi = []
+            for i in range(stoch_period + 1, len(moment)):
+                if len(last_rsi) > stoch_period - 1:
+                    last_rsi.pop(0)
+                datapoint = get_next_average(moment[i], moment[i - 1], avg_gain, avg_loss, stoch_period)
+                last_rsi.append(datapoint.get_rsi())
+
+                lowest_low_rsi = 100
+                highest_high_rsi = 0
+                for rsi in last_rsi:
+                    lowest_low_rsi = rsi if rsi < lowest_low_rsi else lowest_low_rsi
+                    highest_high_rsi = rsi if rsi > highest_high_rsi else highest_high_rsi
+                if highest_high_rsi - lowest_low_rsi > 0:
+                    datapoint.stoch_rsi = (datapoint.rsi - lowest_low_rsi)/(highest_high_rsi - lowest_low_rsi)
+                else:
                     continue
-                records.append(StockRecord(self, datapoint))
-            print records
+                trainable_data.append(StockRecord(self, datapoint))
+            trainable_moments.append(trainable_data)
+        return trainable_moments
