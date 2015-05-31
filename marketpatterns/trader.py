@@ -1,5 +1,7 @@
 # Implement a trading strategy based on the trained buy and sell models
 
+import datetime
+
 
 class Trade(object):
     def __init__(self, symbol, day, trade_window):
@@ -123,3 +125,18 @@ class Trader(object):
 	'''
 	raise Exception("not implemented yet")
 
+
+def print_usage_and_exit():
+    print_err("\n" + sys.argv[0] + " <quote_file_path> <buy_model_name> <sell_model_name> <year> <pattern_window> <trade_window> <buy_threshold> <sell_threshold>")
+    print_err("\nquote_file_path\tpath to file containing quote data")
+    print_err("buy_model_name\tname of buy model without extension")
+    exit(1)
+
+
+def check_command_line_args():
+    if len(sys.argv) < 9:
+    	print_usage_and_exit()
+
+if __name__ == "__main__":
+    # Args:  quote_file_path, buy_model_name, sell_model_name, year, pattern_window, trade_window, buy_threshold, sell_threshold
+    quote_file_path, buy_model_name, sell_model_name, year, pattern_window, trade_window, buy_threshold, sell_threshold = check_command_line_args()

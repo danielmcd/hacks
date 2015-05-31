@@ -1,7 +1,10 @@
+import sys
+import os
 import numpy
 import matplotlib.pyplot as plt
 from nupic.algorithms.anomaly import computeRawAnomalyScore
-from encoder.encoder import Encoder, TrainerFile
+from encoder.encoder import Encoder
+from encoder.trainer_file import TrainerFile
 from encoder.utils.utils import print_err
 
 class Decoder(object):
@@ -22,7 +25,7 @@ class Decoder(object):
 	'''
 	# See https://github.com/numenta/nupic/wiki/Anomaly-Detection-and-Anomaly-Scores
     	data_encoder = self.encoder._get_encoder()
-        input_array = numpy.zeros(encoder.width, dtype="int32")
+        input_array = numpy.zeros(data_encoder.width, dtype="int32")
 
         self.tp.reset()
 
@@ -31,19 +34,13 @@ class Decoder(object):
         for i, record in enumerate(stock_records):
             input_array[:] = numpy.concatenate(data_encoder.encodeEachField(record))
             self.tp.compute(input_array, enableLearn=False, computeInfOutput=True)
-	    active_columns = set(tp.getActiveState().max(axis=1).nonzero()[0].flat)
-	    predicted_columns = set(tp.getPredictedState().max(axis=1).nonzero()[0].flat)
+	    active_columns = set(self.tp.getActiveState())
+	    predicted_columns = set(self.tp.getPredictedState().max(axis=1).nonzero()[0].flat)
 	    if previous_predicted_columns is not None:
-		score.append(computeRawAnomalyScore(active_columns,  previous_predicted_columns))
+		scores.append(computeRawAnomalyScore(active_columns,  previous_predicted_columns))
 	    previous_predicted_columns = predicted_columns
 
 	return numpy.mean(scores)
-
-
-def print_usage_and_exit():
-    print_err("\n" + sys.argv[0] + " <test_datasets_path>")
-    print_err("\ntest_datasets_path\tpath for the test datasets")
-    exit(1)
 
 
 class EventScore(object):
@@ -53,13 +50,13 @@ class EventScore(object):
 
 
 class Tester(object):
-    def __init__(self, test_datasets_file):
-    	self.test_datasets_file = test_datasets_file
+    def __init__(self, test_datasets_path):
+    	self.test_datasets_path = test_datasets_path
 
-    def calculate_anomaly_scores():
-    	trainer_file = TrainerFile(test_datasets_file)
-	test_datasets = trainer_file.get_encoded_data()
-	encoder = Encoder(False)  # Create the Encoder (load TP)
+    def calculate_anomaly_scores(self):
+    	trainer_file = TrainerFile(self.test_datasets_path, parse=True)  # e.g., test_file.csv
+	test_datasets = trainer_file.get_encoded_data(True)  # True => buy model
+	encoder = Encoder(enableLearn=False)  # Create the Encoder (load TP)
 	decoder = Decoder(encoder)  # Create the Decoder
 
 	# Calculate the anomaly score for each event in the test set
@@ -76,10 +73,17 @@ class EventScoreGraph(object):
     	self.event_scores = event_scores
 
     def display(self):
-    	pareto = sorted(event_scores, lambda e: e.score)
+    	pareto = sorted(event_scores, key=lambda e: e.score, reverse=True)
 	pareto_indices = range(len(pareto))
 	pareto_scores = [e.score for e in pareto]
         plt.plot(pareto_indices, pareto_scores, label="Pareto of Avg Anomaly for Test Events")
+	plt.show()
+
+
+def print_usage_and_exit():
+    print_err("\n" + sys.argv[0] + " <test_datasets_path>")
+    print_err("\ntest_datasets_path\tpath for the test datasets")
+    exit(1)
 
 
 def check_command_line_args():
