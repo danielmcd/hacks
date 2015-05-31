@@ -28,16 +28,16 @@ COL_CANDLESTICK = "candlestick"
 
 
 class Encoder(object):
-    def __init__(self, improve_learning = True):
+    def __init__(self, loadTp=True, enableLearn=True):
         self.tp = None
-        self.improve_learning = improve_learning
-        if self.improve_learning and os.path.isfile('tp.p'):
+        if loadTp and os.path.isfile('tp.p'):
             print "Loading TP from tp.p and tp.tp"
             with open("tp.p", "r") as f:
                 self.tp = pickle.load(f)
             self.tp.loadFromFile("tp.tp")
         else:
             self.tp = self._init_tp()
+        self.enableLearn = enableLearn
 
     def _get_encoder(self):
         # date encoding
@@ -96,7 +96,7 @@ class Encoder(object):
 
         for i, record in enumerate(stock_records):
             input_array[:] = numpy.concatenate(encoder.encodeEachField(record))
-            self.tp.compute(input_array, enableLearn=True, computeInfOutput=False)
+            self.tp.compute(input_array, enableLearn=self.enableLearn, computeInfOutput=False)
         self.tp.reset()
 
     def output_tp_file(self):
