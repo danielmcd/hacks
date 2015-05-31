@@ -1,12 +1,7 @@
 #!/usr/bin/python
 import csv
-import re
 import datetime
 from data_point import DataPoint
-from stock import Stock
-
-from utils.utils import print_err
-
 
 __author__ = 'sajarora'
 
@@ -19,13 +14,6 @@ class QuoteFile:
     def __init__(self, file):
         self.filename = file
 
-    def parse_symbol(self):
-        try:
-            return re.match(r'.*_([a-z.]+?)\.csv', self.filename).group(1)
-        except:
-            print_err("ERROR: Cannot determine symbol from file name: " + self.filename)
-            return
-
     def parse_quote_line(self, quote_line):
         date_str, time_str, open_str, high_str, low_str, close_str, volume_str = quote_line
         return DataPoint({"date": datetime.datetime.strptime(date_str, "%Y%m%d").date(),
@@ -35,10 +23,10 @@ class QuoteFile:
                 "close": float(close_str),
                 "volume": float(volume_str)})
 
-    def get_stock(self):
+    def get_datapoints(self):
         with open(self.filename, 'rb') as csvfile:
             quote_reader = csv.reader(csvfile, delimiter=',')
-            stock = Stock(self.parse_symbol())
+            datapoints = []
             for quote_line in quote_reader:
-                stock.add_datapoint(self.parse_quote_line(quote_line))
-            return stock
+                datapoints.append(self.parse_quote_line(quote_line))
+            return datapoints

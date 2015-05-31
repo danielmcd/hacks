@@ -1,4 +1,3 @@
-import calendar
 import numpy
 import os
 import pickle
@@ -16,11 +15,13 @@ COL_MONTH_OF_YEAR = "month_of_year"
 COL_QUART_OF_YEAR = "quart_of_year"
 COL_HALF_OF_YEAR = "half_of_year"
 COL_YEAR_OF_DECADE = "year_of_decade"
+COL_DATE = "date"
 
 #semantics
 COL_STOCH_RSI = "stoch_rsi"
 COL_SYMBOL = "symbol"
 COL_CANDLESTICK = "candlestick"
+
 
 
 class Encoder(object):
@@ -77,7 +78,7 @@ class Encoder(object):
         return encoder
 
     def _init_tp(self):
-        return TP(numberOfCols=self._get_encoder().width, cellsPerColumn=1795,
+        return TP(numberOfCols=self._get_encoder().width, cellsPerColumn=32,
                   initialPerm=0.5, connectedPerm=0.5,
                   minThreshold=10, newSynapseCount=10,
                   permanenceInc=0.1, permanenceDec=0.01,

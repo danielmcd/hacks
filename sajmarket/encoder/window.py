@@ -14,9 +14,6 @@ class Window:
         self.datapoints = stock.get_datapoints()
 
     def get_opportune_moments(self):
-        return self._get_opportune_moments()
-
-    def _get_opportune_moments(self):
         windows = []
         for i, current_datapoint in enumerate(self.datapoints):
             window_datapoints = []
@@ -27,6 +24,7 @@ class Window:
                 else:
                     break
             window = {
+                "symbol": self.stock.get_filepath(),
                 "start": current_datapoint.get_date(),
                 "open_low": current_datapoint.get_open(),
                 "open_low_date": current_datapoint.get_date(),

@@ -1,13 +1,14 @@
 #!/usr/bin/python
 import random
-import datetime
+from trainer_file import TrainerFile
 from window import Window
 
 __author__ = 'sajarora'
 
 SPLIT_PROPORTION_TRAINING = 0.7
-PRECEDING_TIMEDELTA = datetime.timedelta(days=40)
 
+DATA_TRAIN_FILE = 'train_file.csv'
+DATA_TEST_FILE = 'test_file.csv'
 
 class Trainer:
     def __init__(self, stock):
@@ -17,35 +18,14 @@ class Trainer:
         self.test_buy_raw_data = []
         self.test_sell_raw_data = []
 
-    def get_training_moments(self):
-        return self._make_training_data()
-
-    def _make_training_data(self):
+    def calculate_windows(self, save):
         window = Window(self.stock)
-        moments = window.get_opportune_moments()
-        train_data, test_data = self._split_shuffle_data(moments)
+        windows = window.get_opportune_moments()
+        train_data, test_data = self._split_shuffle_data(windows)
 
-        buy_data = []
-        sell_data = []
-        for moment in train_data:
-            buy_data.append(self._get_preceding_data(moment.buy_datapoint.get_date()))
-            sell_data.append(
-                self._get_preceding_data(moment.sell_datapoint.get_date()))
-        return buy_data, sell_data
-
-    def _make_test_data(self):
-        window = Window(self.stock)
-        moments = window.get_opportune_moments()
-        train_data, test_data = self._split_shuffle_data(moments)
-
-        buy_data = []
-        sell_data = []
-        for moment in test_data:
-            buy_data.extend(self._get_preceding_data(moment.buy_datapoint.get_date()))
-            sell_data.extend(
-                self._get_preceding_data(moment.sell_datapoint.get_date()))
-        self.test_buy_raw_data = buy_data
-        self.test_sell_raw_data = sell_data
+        train_file = self.make_trainer_file(train_data, DATA_TRAIN_FILE, save)
+        test_file = self.make_trainer_file(test_data, DATA_TEST_FILE, save)
+        return train_file, test_file
 
     @staticmethod
     def _split_shuffle_data(data):
@@ -55,24 +35,11 @@ class Trainer:
         test_data = data[train_data_length+1:]
         return train_data, test_data
 
-    def _get_preceding_data(self, start_date):
-        datapoints = self.stock.get_datapoints()
-        preceding_data = []
-        for datapoint in datapoints:
-            if datapoint.get_date() > start_date - PRECEDING_TIMEDELTA:
-                if datapoint.get_date() < start_date:
-                    preceding_data.append(datapoint)
-                else:
-                    break
-        return preceding_data
-
-    def _get_during_data(self, buy_date, sell_date):
-        datapoints = self.stock.get_datapoints()
-        proceeding_data = []
-        for datapoint in datapoints:
-            if datapoint.get_date() > buy_date:
-                if datapoint.get_date() < sell_date:
-                    proceeding_data.append(datapoint)
-                else:
-                    break
-        return proceeding_data
+    def make_trainer_file(self, data, path, save):
+        print self.stock
+        trainer_file = TrainerFile(path,
+                                   stock=self.stock,
+                                   windows=data)
+        if save:
+            trainer_file.save()
+        return trainer_file

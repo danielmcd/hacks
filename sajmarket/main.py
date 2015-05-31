@@ -1,39 +1,48 @@
 #!/usr/bin/python
-import os
+import getopt
+from optparse import OptionParser
 import sys
-from encoder.quote_file import QuoteFile
 from encoder.encoder import Encoder
 from encoder.utils.utils import print_err
+from encoder.trainer_file import TrainerFile
+from encoder.stock import Stock, StockRecord
+from encoder.trainer import Trainer
 
 __author__ = 'sajarora'
 
 def print_usage_and_exit():
-    print_err("\n" + sys.argv[0] + " <quote_file_path> <use_existing_tp>")
+    print_err("\n" + sys.argv[0] + " --train|--model -q <quote_file_path> -t <train_file>")
     print_err("\nquote_file_path\tpath for the quote file")
     print_err("use_existing_tp\tTrue of False: improve learning")
     exit(1)
 
 def check_command_line_args():
-    if len(sys.argv) < 2:
-        print_usage_and_exit()
-    if not os.path.exists(sys.argv[1]):
-        print_err("ERROR: " + sys.argv[1] + " is not a file")
-        print_usage_and_exit()
-    if not str(sys.argv[2]).lower() == "true" or str(sys.argv[2]).lower() == "false":
-        print_err("ERROR: " + sys.argv[2] + " is not true of false")
-        print_usage_and_exit()
-    return sys.argv[1], True if str(sys.argv[2]).lower() == "true" else False
+    parser = OptionParser()
+    parser.add_option("-q", "--quote_file", dest="quote_file_path",
+                      help="parse a quote file", metavar="FILE")
+    parser.add_option("--t", "--train",
+                      action="store_true", dest="train", default=True,
+                      help="train the nupic model")
+    parser.add_option("-f", "--train_file", dest="train_data_file",
+                      help="training file with preselected dates and quote file paths")
 
-def main(quote_file_path, improve_learning):
-    encoder = Encoder(improve_learning)
+    return parser.parse_args()
 
-    quote_file = QuoteFile(quote_file_path)
-    stock = quote_file.get_stock()
-    training_buy_datasets, training_sell_datasets = stock.get_training_datasets()
 
-    total_datasets = len(training_buy_datasets)
+
+def start_training(quote_file_path, train_data_file, buy=True):
+    encoder = Encoder(True)
+    if train_data_file is not None and train_data_file != '':
+        trainer_file = TrainerFile(train_data_file, parse=True)
+    else:
+        stock = Stock(quote_file_path)
+        trainer = Trainer(stock)
+        trainer_file, _ = trainer.calculate_windows(True)
+
+    encoded_data = trainer_file.get_encoded_data(buy)
+    total_datasets = len(encoded_data)
     total_trained = 0
-    for i, dataset in enumerate(training_buy_datasets):
+    for i, dataset in enumerate(encoded_data):
         encoder.run_encoder(dataset)
         total_trained += len(dataset)
         print "Completed " + str(i) + "/" + str(total_datasets) + " sets...Trained on: " + \
@@ -41,6 +50,17 @@ def main(quote_file_path, improve_learning):
 
     encoder.output_tp_file()
 
+
+def start_modeling():
+    pass
+
+
+def main(train=True, quote_file_path=None, train_data_file=None):
+    if train:
+        start_training(quote_file_path, train_data_file)
+    else:
+        start_modeling()
+
 if __name__ == "__main__":
-    quote_file, improve_learning = check_command_line_args()
-    main(quote_file, improve_learning)
+    options, args = check_command_line_args()
+    main(options.train, options.quote_file_path, options.train_data_file)
