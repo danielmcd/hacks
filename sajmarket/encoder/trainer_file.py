@@ -48,9 +48,6 @@ class TrainerFile(object):
         columns.append(Column("end", "datetime", ""))
 
         with open(self.filepath, "w") as f:
-            f.write(",".join([c.field_name for c in columns]) + "\n")
-            f.write(",".join([c.field_type for c in columns]) + "\n")
-            f.write(",".join([c.flag for c in columns]) + "\n")
             for window in self.windows:
                 row = []
                 row.append(self.stock.get_filepath())
@@ -93,11 +90,11 @@ class TrainerFile(object):
                 "symbol": symbol,
                 "start": datetime.datetime.strptime(start, "%Y%m%d").date(),
                 "open_low": open_low,
-                "open_low_date": datetime.datetime.strptime(start, "%Y%m%d").date(),
+                "open_low_date": datetime.datetime.strptime(open_low_date, "%Y%m%d").date(),
                 "close_high": close_high,
-                "close_high_date": datetime.datetime.strptime(start, "%Y%m%d").date(),
+                "close_high_date": datetime.datetime.strptime(close_high_date, "%Y%m%d").date(),
                 "delta": delta,
-                "end": datetime.datetime.strptime(start, "%Y%m%d").date()
+                "end": datetime.datetime.strptime(end, "%Y%m%d").date()
             }
         return DotDictify(window)
 
@@ -105,7 +102,7 @@ class TrainerFile(object):
         with open(self.filepath, 'rb') as csvfile:
             moments = csv.reader(csvfile, delimiter=',')
             datapoints = []
-            for line in moments:
+            for index, line in enumerate(moments):
                 datapoints.append(self.parse_quote_line(line))
             return datapoints
 
