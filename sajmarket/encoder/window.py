@@ -9,8 +9,9 @@ WINDOW_MIN_TIMEDELTA = datetime.timedelta(days=3)
 CHANGE_THRESHOLD = 5.0
 
 class Window:
-    def __init__(self, datapoints):
-        self.datapoints = datapoints
+    def __init__(self, stock):
+        self.stock = stock
+        self.datapoints = stock.get_datapoints()
 
     def get_opportune_moments(self):
         return self._get_opportune_moments()
