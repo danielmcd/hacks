@@ -3,7 +3,10 @@ import numpy
 import os
 import pickle
 from nupic.encoders import ScalarEncoder, MultiEncoder, PassThroughEncoder
-from nupic.research.TP import TP
+# Python TP implementation
+#from nupic.research.TP import TP
+# C++ TP implementation
+from nupic.research.TP10X2 import TP10X2 as TP
 
 __author__ = 'sajarora'
 
@@ -77,7 +80,7 @@ class Encoder(object):
         return encoder
 
     def _init_tp(self):
-        return TP(numberOfCols=self._get_encoder().width, cellsPerColumn=1795,
+        return TP(numberOfCols=self._get_encoder().width, cellsPerColumn=32,
                   initialPerm=0.5, connectedPerm=0.5,
                   minThreshold=10, newSynapseCount=10,
                   permanenceInc=0.1, permanenceDec=0.01,
@@ -100,3 +103,4 @@ class Encoder(object):
         self.tp.saveToFile("tp.tp")
         with open("tp.p", "w") as f:
             pickle.dump(self.tp, f)
+
