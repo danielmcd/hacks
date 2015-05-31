@@ -62,6 +62,8 @@ def get_next_average(datapoint, prev_datapoint, avg_gain, avg_loss, stoch_period
                     abs(min(0, datapoint.get_close() - prev_datapoint.get_close())))/stoch_period
         datapoint.avg_gain = avg_gain
         datapoint.avg_loss = avg_loss
+        if avg_loss == 0:
+            avg_loss = 0.01
         datapoint.rs = avg_gain/avg_loss
         datapoint.rsi = 100 - (100/(1+datapoint.rs))
         return datapoint

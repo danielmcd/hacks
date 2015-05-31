@@ -6,7 +6,7 @@ __author__ = 'sajarora'
 
 WINDOW_MAX_TIMEDELTA = datetime.timedelta(days=14)
 WINDOW_MIN_TIMEDELTA = datetime.timedelta(days=3)
-CHANGE_THRESHOLD = 5.0
+CHANGE_THRESHOLD = 1.0
 
 class Window:
     def __init__(self, stock):

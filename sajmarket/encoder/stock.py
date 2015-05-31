@@ -23,7 +23,9 @@ def get_week_of_month(date):
 
 class StockRecord(object):
     def __init__(self, stock, datapoint):
-        date = datapoint.get_date()
+        self.date = date = datapoint.get_date()
+        self.open_price = datapoint.get_open()
+        self.close_price = datapoint.get_close()
         month = Month(date)
         self.day_of_week = date.weekday()
         self.day_of_month = date.day

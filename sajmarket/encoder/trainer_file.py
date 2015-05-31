@@ -106,10 +106,22 @@ class TrainerFile(object):
                 datapoints.append(self.parse_quote_line(line))
             return datapoints
 
+
     def get_encoded_data(self, buy, stoch_period=DEFAULT_STOCH_PERIOD):
         data_pattern = self.get_preceding_pattern(buy)
+        datapoints = self.get_encoded_data_from_array(data_pattern, buy, stoch_period)
         datasets = []
-        for moment in data_pattern:
+        for dataset in datapoints:
+            stock_records = []
+            for record in dataset:
+                stock_records.append(StockRecord(self, record))
+            datasets.append(stock_records)
+        return datasets
+
+    @staticmethod
+    def get_encoded_data_from_array(data_array, buy, stoch_period=DEFAULT_STOCH_PERIOD):
+        datapoints = []
+        for moment in data_array:
             # calculate first average gain/loss
             avg_gain, avg_loss = get_first_average(moment, stoch_period)
 
@@ -136,8 +148,7 @@ class TrainerFile(object):
                 # encode candlestick data
                 candlestick = CandlestickEncoder(moment[i], moment[i - 1])
                 datapoint.candlestick = candlestick.encode()
-                #print datapoint.candlestick
 
-                dataset.append(StockRecord(self, datapoint))
-            datasets.append(dataset)
-        return datasets
+                dataset.append(datapoint)
+            datapoints.append(dataset)
+        return datapoints
