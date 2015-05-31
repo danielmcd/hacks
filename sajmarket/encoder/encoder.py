@@ -2,7 +2,10 @@ import numpy
 import os
 import pickle
 from nupic.encoders import ScalarEncoder, MultiEncoder, PassThroughEncoder
-from nupic.research.TP import TP
+# Python TP implementation
+#from nupic.research.TP import TP
+# C++ TP implementation
+from nupic.research.TP10X2 import TP10X2 as TP
 
 __author__ = 'sajarora'
 
